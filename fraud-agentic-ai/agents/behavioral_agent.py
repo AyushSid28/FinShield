@@ -1,35 +1,84 @@
-def behavioral_agent(state):
-    state.setdefault("nodes", [])  # ensure 'nodes' exists
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+import pandas as pd
+load_dotenv()
 
-    txn = state["txn"]
-    customer_txns = state.get("customer_txns")
+model = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0
+)
 
-    if customer_txns is None or customer_txns.empty:
-        risk = 0.4
-        reason = "No transaction history available"
+class BehaviouralSchema(BaseModel):
+    behavioral_risk: float = Field(
+        description="Risk score between 0 and 1",
+        ge=0,
+        le=1
+    )
+    behavioral_label: str = Field(
+        description="Low | Medium | High"
+    )
+    behavioral_reason: str = Field(
+        description="Short explanation for assigned risk"
+    )
+
+structured_model = model.with_structured_output(BehaviouralSchema)
+
+
+def behavioral_agent(state: dict) -> dict:
+    """
+    LLM-Based Behavioral Fraud Analysis Agent
+
+    Expected input state:
+    {
+        "transaction": dict,
+        "transaction_history": list
+    }
+
+    Returns ONLY:
+    {
+        "behavioral_risk": float,
+        "behavioral_label": str,
+        "behavioral_reason": str
+    }
+    """
+
+    txn = state.get("transaction")
+    history = state.get("transaction_history", [])
+
+    history_df = pd.DataFrame(history)
+
+    if history_df.empty:
+        history_summary = "No previous transaction history available."
     else:
-        avg_amount = customer_txns["amount"].mean()
+        history_summary = f"""
+        Total Transactions: {len(history_df)}
+        Average Amount: {history_df['amount'].mean():.2f}
+        Maximum Amount: {history_df['amount'].max():.2f}
+        Minimum Amount: {history_df['amount'].min():.2f}
+        """
 
-        if txn["amount"] <= avg_amount:
-            risk = 0.1
-            reason = f"Txn amount {txn['amount']} is below or equal to usual avg {round(avg_amount,2)}"
-        elif txn["amount"] <= avg_amount * 1.5:
-            risk = 0.4
-            reason = f"Txn amount {txn['amount']} is moderately higher than avg {round(avg_amount,2)}"
-        else:
-            risk = 0.8
-            reason = f"Txn amount {txn['amount']} is significantly higher than avg {round(avg_amount,2)}"
+    prompt = f"""
+    You are a senior financial fraud analyst.
 
-    # ✅ Save risk and reason in state for graph/LLM
-    state["behavioral_risk"] = round(risk, 2)
-    state["behavioral_reason"] = reason
+    Current Transaction:
+    {txn}
 
-    # ✅ Append to nodes for visualization
-    state["nodes"].append({
-        "id": "behavioral_agent",
-        "name": "Behavioral Agent",
-        "risk": round(risk, 2),
-        "reason": reason
-    })
+    Customer Behavioral History Summary:
+    {history_summary}
 
-    return state
+    Determine whether this transaction is behaviorally suspicious.
+
+    Provide:
+    - Risk score between 0 and 1
+    - Behavioral label (Low, Medium, High)
+    - Short explanation
+    """
+
+    response = structured_model.invoke(prompt)
+
+    return {
+        "behavioral_risk": response.behavioral_risk,
+        "behavioral_label": response.behavioral_label,
+        "behavioral_reason": response.behavioral_reason,
+    }

@@ -6,6 +6,7 @@ import math
 from agents.behavioral_agent import behavioral_agent
 from agents.geo_agent import geo_agent
 from agents.device_agent import device_agent
+from agents.temporal_agent import temporal_agent
 from agents.decision_agent_llm import decision_agent_llm
 
 # Load CSV once at startup
@@ -36,6 +37,8 @@ def evaluate(txn: dict):
     # ---------- Behavioral Agent ----------
     state = behavioral_agent(state)
 
+    # ---------- Temporal Agent ----------
+    state = temporal_agent(state)
 
     # ---------- Geo Agent ----------
     state = geo_agent(state)

@@ -27,9 +27,22 @@ def decision_agent_llm(state: dict) -> dict:
 You are a banking fraud decision engine.
 
 Signals:
-- Behavioral risk: {state.get("behavioral_risk", 0.5)}
-- Geo risk: {state.get("geo_risk", 0.5)}
-- Device risk: {state.get("device_risk", 0.5)}
+- Behavioral risk: {state.get("behavioral_risk", 0.5)} (transaction amount vs customer history)
+- Temporal risk: {state.get("temporal_risk", 0.5)} (late night, unusual hours, transaction time patterns)
+- Geo risk: {state.get("geo_risk", 0.5)} (location-based anomalies)
+- Device risk: {state.get("device_risk", 0.5)} (device pattern deviations)
+
+Additional Context:
+- Behavioral reason: {state.get("behavioral_reason", "N/A")}
+- Temporal reason: {state.get("temporal_reason", "N/A")}
+- Geo reason: {state.get("geo_reason", "N/A")}
+- Device reason: {state.get("device_reason", "N/A")}
+
+Consider especially:
+- Transactions at unusual hours (00:00-05:00 = high risk)
+- Customer's typical transaction times
+- Combination of late-night + high amount = very high risk
+- Late-night + new device + unusual location = very high risk
 
 Return ONLY valid JSON. No markdown, no explanations outside JSON.
 

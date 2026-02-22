@@ -43,10 +43,22 @@ def behavioral_agent(state: dict) -> dict:
     }
     """
 
-    txn = state.get("transaction")
-    history = state.get("transaction_history", [])
+    state.setdefault("nodes", [])
 
-    history_df = pd.DataFrame(history)
+    txn = state.get("txn") or state.get("transaction") or {}
+    history_source = (
+        state.get("customer_txns")
+        if state.get("customer_txns") is not None
+        else state.get("transaction_history", [])
+    )
+
+    if isinstance(history_source, pd.DataFrame):
+        history_df = history_source.copy()
+    else:
+        history_df = pd.DataFrame(history_source)
+
+    if "amount" not in history_df.columns:
+        history_df["amount"] = pd.Series(dtype=float)
 
     if history_df.empty:
         history_summary = "No previous transaction history available."
@@ -77,8 +89,15 @@ def behavioral_agent(state: dict) -> dict:
 
     response = structured_model.invoke(prompt)
 
-    return {
-        "behavioral_risk": response.behavioral_risk,
-        "behavioral_label": response.behavioral_label,
-        "behavioral_reason": response.behavioral_reason,
-    }
+    state["behavioral_risk"] = response.behavioral_risk
+    state["behavioral_label"] = response.behavioral_label
+    state["behavioral_reason"] = response.behavioral_reason
+
+    state["nodes"].append({
+        "id": "behavioral_agent",
+        "name": "Behavioral Agent",
+        "risk": response.behavioral_risk,
+        "reason": response.behavioral_reason
+    })
+
+    return state

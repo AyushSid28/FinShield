@@ -10,6 +10,7 @@ class TransactionRequest(BaseModel):
     merchant: str
     location: str
     deviceId: str
+    timestamp: str  # ISO 8601 format: "2026-01-15T23:45:00"
 
 
 app = FastAPI()

@@ -8,6 +8,9 @@ class FraudState(TypedDict, total=False):
     behavioral_risk: float
     behavioral_reason: str
 
+    temporal_risk: float
+    temporal_reason: str
+
     geo_risk: float
     geo_reason: str
 

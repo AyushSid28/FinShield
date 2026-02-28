@@ -2,6 +2,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import pandas as pd
+
 load_dotenv()
 
 model = ChatOpenAI(
@@ -27,7 +28,7 @@ structured_model = model.with_structured_output(BehaviouralSchema)
 
 def behavioral_agent(state: dict) -> dict:
     """
-    LLM-Based Behavioral Fraud Analysis Agent
+    Parallel-safe LLM-Based Behavioral Fraud Analysis Agent.
 
     Expected input state:
     {
@@ -39,11 +40,10 @@ def behavioral_agent(state: dict) -> dict:
     {
         "behavioral_risk": float,
         "behavioral_label": str,
-        "behavioral_reason": str
+        "behavioral_reason": str,
+        "nodes": list
     }
     """
-
-    state.setdefault("nodes", [])
 
     txn = state.get("txn") or state.get("transaction") or {}
     history_source = (
@@ -89,15 +89,16 @@ def behavioral_agent(state: dict) -> dict:
 
     response = structured_model.invoke(prompt)
 
-    state["behavioral_risk"] = response.behavioral_risk
-    state["behavioral_label"] = response.behavioral_label
-    state["behavioral_reason"] = response.behavioral_reason
-
-    state["nodes"].append({
-        "id": "behavioral_agent",
-        "name": "Behavioral Agent",
-        "risk": response.behavioral_risk,
-        "reason": response.behavioral_reason
-    })
-
-    return state
+    return {
+        "behavioral_risk": response.behavioral_risk,
+        "behavioral_label": response.behavioral_label,
+        "behavioral_reason": response.behavioral_reason,
+        "nodes": [
+            {
+                "id": "behavioral_agent",
+                "name": "Behavioral Agent",
+                "risk": response.behavioral_risk,
+                "reason": response.behavioral_reason
+            }
+        ]
+    }

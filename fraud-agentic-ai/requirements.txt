@@ -9,3 +9,5 @@ seaborn
 fastapi
 uvicorn
 langchain-ollama
+langgraph
+sqlite3 

@@ -1,12 +1,14 @@
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import pandas as pd
 
 load_dotenv()
 
-model = ChatOpenAI(
-    model="gpt-4o-mini",
+
+# Use Ollama (mistral:latest or gemma3:1b)
+model = ChatOllama(
+    model="mistral:latest",  # or "gemma3:1b" if preferred
     temperature=0
 )
 

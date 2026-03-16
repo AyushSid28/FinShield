@@ -1,6 +1,9 @@
 def device_risk_score(txn: dict, customer_txns):
     device_id = txn.get("deviceId")
 
+    if customer_txns is None:
+        return 0.4, "No device history available"
+
     if customer_txns.empty:
         return 0.4, "No device history available"
 

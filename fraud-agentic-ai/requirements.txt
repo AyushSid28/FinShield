@@ -10,4 +10,4 @@ fastapi
 uvicorn
 langchain-ollama
 langgraph
-sqlite3 
+python-dotenv

@@ -26,6 +26,7 @@ def geo_agent(state: dict) -> dict:
     LLM-Orchestrated Geo Agent with Tool Roundtrip
     """
 
+    state.setdefault("nodes", [])
     txn = state.get("txn") or state.get("transaction") or {}
     history_source = (
         state.get("customer_txns")
@@ -70,16 +71,16 @@ Provide final geo fraud assessment.
 
     response = structured_model.invoke(messages)
 
-    return {
-        "geo_risk": response.geo_risk,
-        "geo_label": response.geo_label,
-        "geo_reason": response.geo_reason,
-        "nodes": [
-            {
-                "id": "geo_agent",
-                "name": "Geo Agent",
-                "risk": response.geo_risk,
-                "reason": response.geo_reason
-            }
-        ]
-    }
+    state["geo_risk"] = response.geo_risk
+    state["geo_label"] = response.geo_label
+    state["geo_reason"] = response.geo_reason
+    state["nodes"].append(
+        {
+            "id": "geo_agent",
+            "name": "Geo Agent",
+            "risk": response.geo_risk,
+            "label": response.geo_label,
+            "reason": response.geo_reason,
+        }
+    )
+    return state

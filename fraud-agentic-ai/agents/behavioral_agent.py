@@ -47,6 +47,7 @@ def behavioral_agent(state: dict) -> dict:
     }
     """
 
+    state.setdefault("nodes", [])
     txn = state.get("txn") or state.get("transaction") or {}
     history_source = (
         state.get("customer_txns")
@@ -91,16 +92,16 @@ def behavioral_agent(state: dict) -> dict:
 
     response = structured_model.invoke(prompt)
 
-    return {
-        "behavioral_risk": response.behavioral_risk,
-        "behavioral_label": response.behavioral_label,
-        "behavioral_reason": response.behavioral_reason,
-        "nodes": [
-            {
-                "id": "behavioral_agent",
-                "name": "Behavioral Agent",
-                "risk": response.behavioral_risk,
-                "reason": response.behavioral_reason
-            }
-        ]
-    }
+    state["behavioral_risk"] = response.behavioral_risk
+    state["behavioral_label"] = response.behavioral_label
+    state["behavioral_reason"] = response.behavioral_reason
+    state["nodes"].append(
+        {
+            "id": "behavioral_agent",
+            "name": "Behavioral Agent",
+            "risk": response.behavioral_risk,
+            "label": response.behavioral_label,
+            "reason": response.behavioral_reason,
+        }
+    )
+    return state

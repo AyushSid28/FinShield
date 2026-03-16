@@ -1,7 +1,13 @@
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 import json
 import re
+
+# Orchestrated agents
+from agents.behavioral_agent import behavioral_agent
+from agents.temporal_agent import temporal_agent
+from agents.geo_agent import geo_agent
+from agents.device_agent import device_agent
 
 # Initialize LLM
 llm = ChatOllama(
@@ -12,51 +18,56 @@ llm = ChatOllama(
 
 def decision_agent_llm(state: dict) -> dict:
     """
-    LLM Decision Agent
+    LLM Decision Agent (Orchestrator)
     ------------------
-    Reads signals from state (behavioral, geo, device)
-    and returns final risk decision and action.
+    Orchestrates upstream agents, then returns final decision + action.
     """
 
     # Ensure trace exists
     state.setdefault("trace", [])
     state["trace"].append("🤖 LLM Decision Agent started")
+    state.setdefault("nodes", [])
 
-    # Build prompt dynamically
-    prompt = f"""
+    # Orchestrate the other agents first
+    state = behavioral_agent(state)
+    state = temporal_agent(state)
+    state = geo_agent(state)
+    state = device_agent(state)
+
+    messages = [
+        SystemMessage(
+            content="""
 You are a banking fraud decision engine.
 
-Signals:
-- Behavioral risk: {state.get("behavioral_risk", 0.5)} (transaction amount vs customer history)
-- Temporal risk: {state.get("temporal_risk", 0.5)} (late night, unusual hours, transaction time patterns)
-- Geo risk: {state.get("geo_risk", 0.5)} (location-based anomalies)
-- Device risk: {state.get("device_risk", 0.5)} (device pattern deviations)
+You will be given fraud signals from specialized agents (behavioral, temporal, geo, device).
+Use them to decide overall risk and action.
 
-Additional Context:
-- Behavioral reason: {state.get("behavioral_reason", "N/A")}
-- Temporal reason: {state.get("temporal_reason", "N/A")}
-- Geo reason: {state.get("geo_reason", "N/A")}
-- Device reason: {state.get("device_reason", "N/A")}
-
-Consider especially:
-- Transactions at unusual hours (00:00-05:00 = high risk)
-- Customer's typical transaction times
-- Combination of late-night + high amount = very high risk
-- Late-night + new device + unusual location = very high risk
-
-Return ONLY valid JSON. No markdown, no explanations outside JSON.
+Return ONLY valid JSON (no markdown, no extra text).
 
 Schema:
-{{
-  "decision": "LOW_RISK | MID_RISK | HIGH_RISK",
-  "action": "ALLOW | REVIEW | BLOCK",
+{
+  "decision": "LOW_RISK" | "MID_RISK" | "HIGH_RISK",
+  "action": "ALLOW" | "REVIEW" | "BLOCK",
   "reasoning": "short explanation"
-}}
-"""
+}
+""".strip()
+        ),
+        HumanMessage(
+            content=f"""
+Signals:
+- Behavioral: risk={state.get("behavioral_risk", 0.5)}, label={state.get("behavioral_label", "N/A")}, reason={state.get("behavioral_reason", "N/A")}
+- Temporal: risk={state.get("temporal_risk", 0.5)}, label={state.get("temporal_label", "N/A")}, reason={state.get("temporal_reason", "N/A")}
+- Geo: risk={state.get("geo_risk", 0.5)}, label={state.get("geo_label", "N/A")}, reason={state.get("geo_reason", "N/A")}
+- Device: risk={state.get("device_risk", 0.5)}, label={state.get("device_label", "N/A")}, reason={state.get("device_reason", "N/A")}
+
+Provide the final decision and action.
+""".strip()
+        ),
+    ]
 
     # Invoke LLM
     try:
-        response = llm.invoke(prompt)
+        response = llm.invoke(messages)
         raw_text = response.content
 
         # Extract JSON safely even if LLM adds extra text
@@ -67,26 +78,35 @@ Schema:
         result = json.loads(json_match.group())
 
     except Exception as e:
-        # Fallback rule-based decision if LLM fails
-        combined_risk = (
-            0.5 * state.get("behavioral_risk", 0.5) +
-            0.3 * state.get("geo_risk", 0.5) +
-            0.2 * state.get("device_risk", 0.5)
-        )
-        if combined_risk > 0.65:
-            result = {"decision": "MID_RISK", "action": "REVIEW", "reasoning": "fallback weighted rule"}
-        elif combined_risk > 0.35:
-            result = {"decision": "LOW_RISK", "action": "ALLOW", "reasoning": "fallback weighted rule"}
+        # Minimal fallback if LLM fails (no hard-coded weighting)
+        labels = [
+            state.get("behavioral_label"),
+            state.get("temporal_label"),
+            state.get("geo_label"),
+            state.get("device_label"),
+        ]
+        if "High" in labels:
+            result = {"decision": "HIGH_RISK", "action": "BLOCK", "reasoning": "Fallback: at least one agent flagged High risk."}
+        elif "Medium" in labels:
+            result = {"decision": "MID_RISK", "action": "REVIEW", "reasoning": "Fallback: at least one agent flagged Medium risk."}
         else:
-            result = {"decision": "VERY_LOW_RISK", "action": "ALLOW", "reasoning": "fallback weighted rule"}
+            result = {"decision": "LOW_RISK", "action": "ALLOW", "reasoning": "Fallback: no agent flagged elevated risk."}
         state["trace"].append(f"⚠️ LLM failed, fallback used: {str(e)}")
 
     # Update trace for observability
     state["trace"].append(f"Decision={result['decision']}, Action={result['action']}")
 
-    # Return only what graph needs
-    return {
-        "decision": result["decision"],
-        "action": result["action"],
-        "llm_reasoning": result["reasoning"]
-    }
+    state["decision"] = result["decision"]
+    state["action"] = result["action"]
+    state["llm_reasoning"] = result["reasoning"]
+    state["nodes"].append(
+        {
+            "id": "llm_agent",
+            "name": "LLM Decision Agent",
+            "decision": result["decision"],
+            "action": result["action"],
+            "reasoning": result["reasoning"],
+        }
+    )
+
+    return state

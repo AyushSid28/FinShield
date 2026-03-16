@@ -1,17 +1,26 @@
 # fraud_graph.py
 import pandas as pd
 import math
+from pathlib import Path
 
 
-from agents.behavioral_agent import behavioral_agent
-from agents.geo_agent import geo_agent
-from agents.device_agent import device_agent
-from agents.temporal_agent import temporal_agent
 from agents.decision_agent_llm import decision_agent_llm
 
 # Load CSV once at startup
-transaction_history = pd.read_csv("transactions.csv")
-transaction_history['timestamp'] = pd.to_datetime(transaction_history['timestamp'])
+_csv_candidates = ["synthetic_transactions.csv", "transactions.csv"]
+_csv_path = next((p for p in _csv_candidates if Path(p).exists()), _csv_candidates[-1])
+transaction_history = pd.read_csv(_csv_path)
+
+# Normalize columns so tools/agents can rely on consistent names
+transaction_history = transaction_history.rename(
+    columns={
+        "transaction_id": "transactionId",
+        "customer_id": "customerId",
+        "device": "deviceId",
+    }
+)
+if "timestamp" in transaction_history.columns:
+    transaction_history["timestamp"] = pd.to_datetime(transaction_history["timestamp"])
 
 def sigmoid(x):
     """Sigmoid function to normalize risk between 0 and 1 smoothly."""
@@ -22,8 +31,11 @@ def evaluate(txn: dict):
     Dynamic evaluation of a transaction based on historical data.
     Returns LangGraph-style nodes with realistic risk scoring.
     """
-    customer_id = txn['customerId']
-    customer_txns = transaction_history[transaction_history['customerId'] == customer_id]
+    customer_id = txn.get("customerId") or txn.get("customer_id")
+    txn_id = txn.get("transactionId") or txn.get("transaction_id")
+    customer_txns = transaction_history[transaction_history["customerId"] == customer_id]
+    if txn_id is not None and "transactionId" in customer_txns.columns:
+        customer_txns = customer_txns[customer_txns["transactionId"] != txn_id]
 
     nodes = []
     state = {
@@ -33,29 +45,9 @@ def evaluate(txn: dict):
     "nodes": nodes
     }
 
-
-    # ---------- Behavioral Agent ----------
-    state = behavioral_agent(state)
-
-    # ---------- Temporal Agent ----------
-    state = temporal_agent(state)
-
-    # ---------- Geo Agent ----------
-    state = geo_agent(state)
-
-    # ---------- Device Agent ----------
-
-    state = device_agent(state)
-
-    # ---------- LLM Decision Agent ----------
-    llm_result = decision_agent_llm(state)
-    nodes.append({
-    "id": "llm_agent",
-    "name": "LLM Decision Agent",
-    "decision": llm_result["decision"],
-    "action": llm_result["action"],
-    "reasoning": llm_result["llm_reasoning"]
-    })
+    # ---------- Orchestrator (LLM Decision Agent) ----------
+    # Decision agent orchestrates: behavioral -> temporal -> geo -> device -> decision
+    state = decision_agent_llm(state)
 
     return {
     "transaction": txn,

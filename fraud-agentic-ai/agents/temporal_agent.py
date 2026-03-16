@@ -29,12 +29,20 @@ structured_model = model.with_structured_output(TemporalSchema)
 
 def temporal_agent(state: dict) -> dict:
 
-    txn = state.get("transaction", {})
-    history = state.get("transaction_history", [])
+    state.setdefault("nodes", [])
+    txn = state.get("txn") or state.get("transaction") or {}
+    history_source = (
+        state.get("customer_txns")
+        if state.get("customer_txns") is not None
+        else state.get("transaction_history", [])
+    )
 
     txn_timestamp = txn.get("timestamp")
 
-    history_df = pd.DataFrame(history)
+    if isinstance(history_source, pd.DataFrame):
+        history_df = history_source.copy()
+    else:
+        history_df = pd.DataFrame(history_source)
 
     if not history_df.empty and "timestamp" in history_df.columns:
         history_df["timestamp"] = pd.to_datetime(history_df["timestamp"])
@@ -83,16 +91,16 @@ Analyze whether this transaction is temporally suspicious.
 
     response = structured_model.invoke(messages)
 
-    return {
-        "temporal_risk": response.temporal_risk,
-        "temporal_label": response.temporal_label,
-        "temporal_reason": response.temporal_reason,
-        "nodes": [
-            {
-                "id": "temporal_agent",
-                "name": "Temporal Agent",
-                "risk": response.temporal_risk,
-                "reason": response.temporal_reason
-            }
-        ]
-    }
+    state["temporal_risk"] = response.temporal_risk
+    state["temporal_label"] = response.temporal_label
+    state["temporal_reason"] = response.temporal_reason
+    state["nodes"].append(
+        {
+            "id": "temporal_agent",
+            "name": "Temporal Agent",
+            "risk": response.temporal_risk,
+            "label": response.temporal_label,
+            "reason": response.temporal_reason,
+        }
+    )
+    return state

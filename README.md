@@ -34,10 +34,15 @@ fraud-agentic-ai/
 
 ```bash
 pip install -r requirements.txt
+```
 
 2. Run the FastAPI server:
 
+```bash
 uvicorn app:app --reload
+```
+
+3. Call the API or run your pipeline from `fraud_graph.evaluate()` for single transactions.
 
 3. Send a POST request to:
 POST /fraud/check

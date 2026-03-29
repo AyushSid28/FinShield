@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "source": "curated_transactions.csv",
+    "evaluated_at": "2026-03-29T16:59:42.219114",
+    "dataset_rows": 12
+  },
+  "transaction": {
+    "transactionId": "T00010467",
+    "customerId": "IND_SHIVPURI",
+    "amount": 3999.35,
+    "merchant": "Brand Vouchers and OTT",
+    "location": "Shivpuri",
+    "deviceId": "81f70d26-039",
+    "timestamp": "2024-03-23T05:27:20",
+    "deviceType": "Android",
+    "ipCountry": "IN",
+    "isProxyIP": "false",
+    "browserType": "",
+    "paymentType": "Gamma Bank",
+    "cvvResult": "",
+    "shippingCountry": "IN",
+    "billingCountry": "IN",
+    "accountAge": 13,
+    "recentRejects": 0
+  },
+  "agent_signals": {
+    "behavioral": {
+      "risk": 0.99,
+      "label": "High",
+      "reason": "High Z-score (21.74) indicating a highly anomalous transaction, combined with enrichment signals such as empty CVV and low account age (13 days)",
+      "z_score": 21.7414,
+      "statistical_risk": 1.0
+    },
+    "temporal": {
+      "risk": 0.4,
+      "label": "Medium",
+      "reason": "The transaction hour matches the average active hour, but the hour frequency of historical transactions at this hour is 0%",
+      "decay_risk": 0.4
+    },
+    "geo": {
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected"
+    },
+    "device": {
+      "risk": 0.57,
+      "label": "Medium",
+      "reason": "Unknown device, inconsistent device type with historical data, and moderate risk score"
+    }
+  },
+  "decision": {
+    "verdict": "HIGH_RISK",
+    "action": "BLOCK",
+    "reasoning": "The transaction is deemed high risk due to a highly anomalous behavioral signal with a risk score of 0.99, driven by a high Z-score of 21.74 and enrichment signals such as an empty CVV and low account age of 13 days. Additionally, the device signal shows a moderate risk score of 0.57 due to an unknown device and inconsistent device type. Therefore, the transaction should be blocked to prevent potential fraud."
+  },
+  "trace": [
+    "\ud83e\udd16 LLM Decision Agent started",
+    "Decision=HIGH_RISK, Action=BLOCK"
+  ],
+  "nodes": [
+    {
+      "id": "behavioral_agent",
+      "name": "Behavioral Agent",
+      "risk": 0.99,
+      "label": "High",
+      "reason": "High Z-score (21.74) indicating a highly anomalous transaction, combined with enrichment signals such as empty CVV and low account age (13 days)"
+    },
+    {
+      "id": "temporal_agent",
+      "name": "Temporal Agent",
+      "risk": 0.4,
+      "label": "Medium",
+      "reason": "The transaction hour matches the average active hour, but the hour frequency of historical transactions at this hour is 0%"
+    },
+    {
+      "id": "geo_agent",
+      "name": "Geo Agent",
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected"
+    },
+    {
+      "id": "device_agent",
+      "name": "Device Agent",
+      "risk": 0.57,
+      "label": "Medium",
+      "reason": "Unknown device, inconsistent device type with historical data, and moderate risk score"
+    },
+    {
+      "id": "llm_agent",
+      "name": "LLM Decision Agent",
+      "decision": "HIGH_RISK",
+      "action": "BLOCK",
+      "reasoning": "The transaction is deemed high risk due to a highly anomalous behavioral signal with a risk score of 0.99, driven by a high Z-score of 21.74 and enrichment signals such as an empty CVV and low account age of 13 days. Additionally, the device signal shows a moderate risk score of 0.57 due to an unknown device and inconsistent device type. Therefore, the transaction should be blocked to prevent potential fraud."
+    }
+  ]
+}

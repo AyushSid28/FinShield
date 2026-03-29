@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "source": "Microsoft R-Server Fraud Detection Dataset (microsoft_transactions.csv)",
+    "evaluated_at": "2026-03-29T16:10:16.699235",
+    "dataset_rows": 71
+  },
+  "transaction": {
+    "customerId": "A1829582519832190",
+    "transactionId": "72B7AED1-0944-4DE8-8BEF-74680BBAC3F1",
+    "amount": 59.99,
+    "timestamp": "2013-05-16 13:34:28",
+    "localHour": 8.0,
+    "deviceId": "unknown",
+    "deviceType": "Unknown",
+    "ipAddress": 184.2,
+    "ipState": "north carolina",
+    "ipCountry": "us",
+    "isProxyIP": false,
+    "browserType": "Unknown",
+    "paymentType": "Unknown",
+    "cardType": "Unknown",
+    "cvvResult": "M",
+    "location": "north carolina",
+    "shippingCountry": NaN,
+    "billingCountry": "US",
+    "merchant": "Unknown",
+    "transactionType": "P",
+    "transactionMethod": NaN,
+    "digitalItemCount": 1,
+    "physicalItemCount": 0,
+    "accountCity": NaN,
+    "accountCountry": "US",
+    "accountAge": 1,
+    "isRegistered": false,
+    "recentRejects": 0
+  },
+  "agent_signals": {
+    "behavioral": {
+      "risk": 0.45,
+      "label": "Medium",
+      "reason": "The transaction has a Z-score of 0.00, indicating it is not anomalous in terms of amount. However, enrichment signals such as new account age (1 day) with a risk of 0.81 and unknown payment type contribute to a moderate risk. The CVV result is a match (M), which is a positive signal.",
+      "z_score": 0.0,
+      "statistical_risk": 0.1824
+    },
+    "temporal": {
+      "risk": 0.4,
+      "label": "Medium",
+      "reason": "The transaction hour has a moderate deviation from the customer's average active hour and a moderate risk score based on pre-computed temporal analysis",
+      "decay_risk": 0.404
+    },
+    "geo": {
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected"
+    },
+    "device": {
+      "risk": 0.025,
+      "label": "Low",
+      "reason": "The device is known to the customer with a low risk score and no suspicious activity"
+    }
+  },
+  "decision": {
+    "verdict": "MID_RISK",
+    "action": "REVIEW",
+    "reasoning": "Multiple moderate risk signals from behavioral, temporal, and geo agents outweigh the low risk signal from the device agent"
+  },
+  "trace": [
+    "\ud83e\udd16 LLM Decision Agent started",
+    "Decision=MID_RISK, Action=REVIEW"
+  ],
+  "nodes": [
+    {
+      "id": "behavioral_agent",
+      "name": "Behavioral Agent",
+      "risk": 0.45,
+      "label": "Medium",
+      "reason": "The transaction has a Z-score of 0.00, indicating it is not anomalous in terms of amount. However, enrichment signals such as new account age (1 day) with a risk of 0.81 and unknown payment type contribute to a moderate risk. The CVV result is a match (M), which is a positive signal."
+    },
+    {
+      "id": "temporal_agent",
+      "name": "Temporal Agent",
+      "risk": 0.4,
+      "label": "Medium",
+      "reason": "The transaction hour has a moderate deviation from the customer's average active hour and a moderate risk score based on pre-computed temporal analysis"
+    },
+    {
+      "id": "geo_agent",
+      "name": "Geo Agent",
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected"
+    },
+    {
+      "id": "device_agent",
+      "name": "Device Agent",
+      "risk": 0.025,
+      "label": "Low",
+      "reason": "The device is known to the customer with a low risk score and no suspicious activity"
+    },
+    {
+      "id": "llm_agent",
+      "name": "LLM Decision Agent",
+      "decision": "MID_RISK",
+      "action": "REVIEW",
+      "reasoning": "Multiple moderate risk signals from behavioral, temporal, and geo agents outweigh the low risk signal from the device agent"
+    }
+  ]
+}

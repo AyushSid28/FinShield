@@ -1,10 +1,12 @@
 import asyncio
+import math
 import os
 import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +14,23 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from fraud_graph import evaluate
+
+
+def sanitize(obj):
+    if isinstance(obj, dict):
+        return {k: sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [sanitize(v) for v in obj]
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    if isinstance(obj, (np.floating, np.integer)):
+        v = float(obj)
+        return None if math.isnan(v) or math.isinf(v) else v
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+    if isinstance(obj, np.ndarray):
+        return sanitize(obj.tolist())
+    return obj
 
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
 
@@ -82,7 +101,7 @@ app.add_middleware(
 @app.post("/fraud/check")
 async def check_fraud(txn: TransactionRequest):
     result = await asyncio.to_thread(evaluate, txn.dict())
-    return result
+    return sanitize(result)
 
 
 AGENT_WEIGHTS = {
@@ -227,7 +246,7 @@ async def simulate_transaction(txn: SimulationRequest):
             "recentRejects": txn.recentRejects,
         }
         pipeline_result = await asyncio.to_thread(evaluate, full_txn)
-        return transform_pipeline_result(pipeline_result, timestamp)
+        return sanitize(transform_pipeline_result(pipeline_result, timestamp))
 
     except Exception as e:
         print(f"[FinShield] Pipeline failed, using deterministic fallback: {e}")
@@ -251,13 +270,9 @@ async def list_transactions():
         for col in df.columns:
             if col == "isShowcase":
                 continue
-            val = row[col]
-            if isinstance(val, float) and math.isnan(val):
-                txn[col] = None
-            else:
-                txn[col] = val
+            txn[col] = row[col]
         txns.append(txn)
-    return txns
+    return sanitize(txns)
 
 
 @app.get("/health")

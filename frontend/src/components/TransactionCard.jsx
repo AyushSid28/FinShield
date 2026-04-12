@@ -14,8 +14,10 @@ const getStatusTone = (status) => {
   return 'border-emerald-300/30 bg-emerald-200/10 text-emerald-200';
 };
 
-const formatAmount = (amount) => {
+const formatAmount = (amount, data) => {
   if (!amount) return '--';
+  const isIndian = (data?.source || '').includes('Indian') || (data?.ipCountry || '').toUpperCase() === 'IN';
+  if (isIndian) return `₹${Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
   return `$${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 };
 
@@ -37,7 +39,7 @@ const transactionRows = (data, response) => {
   const rows = [
     ['Transaction ID', data.transactionId || '--'],
     ['Customer', data.customerId ? `...${data.customerId.slice(-6)}` : null],
-    ['Amount', formatAmount(data.amount)],
+    ['Amount', formatAmount(data.amount, data)],
   ];
 
   const loc = hasValue(data.location) ? data.location : hasValue(data.ipState) ? data.ipState : null;

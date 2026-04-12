@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "source": "Microsoft R-Server Fraud Detection Dataset (microsoft_transactions.csv)",
+    "evaluated_at": "2026-03-29T16:36:49.866026",
+    "dataset_rows": 71
+  },
+  "transaction": {
+    "transactionId": "CBE31B92-8D8D-422D-BF1C-2883222AC68B",
+    "customerId": "A1688853657869890",
+    "amount": 52.99,
+    "merchant": "Unknown",
+    "location": "tennessee",
+    "deviceId": "unknown",
+    "timestamp": "2013-04-03T16:30:29",
+    "deviceType": "Unknown",
+    "ipCountry": "us",
+    "isProxyIP": "false",
+    "browserType": "Unknown",
+    "paymentType": "Unknown",
+    "cvvResult": "M",
+    "shippingCountry": "",
+    "billingCountry": "US",
+    "accountAge": 1,
+    "recentRejects": 0
+  },
+  "agent_signals": {
+    "behavioral": {
+      "risk": 0.45,
+      "label": "Medium",
+      "reason": "The transaction has a Z-score of 0, indicating it is not anomalous based on amount. However, the account age is 1 day, which is a risk factor. The CVV result is 'M', which is not a strong fraud indicator in this case. The statistical risk is 0.18, and the enrichment signals suggest a moderate risk due to the new account and unknown payment type.",
+      "z_score": 0.0,
+      "statistical_risk": 0.1824
+    },
+    "temporal": {
+      "risk": 0.89,
+      "label": "High",
+      "reason": "Transaction hour is outside of typical active hours and has a high circular deviation and exponential decay risk",
+      "decay_risk": 0.8904
+    },
+    "geo": {
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected, but risk score is moderate"
+    },
+    "device": {
+      "risk": 0.025,
+      "label": "Low",
+      "reason": "Known device with low entropy and no proxy IP"
+    }
+  },
+  "decision": {
+    "verdict": "MID_RISK",
+    "action": "REVIEW",
+    "reasoning": "The combination of signals from the four specialized agents indicates a moderate risk transaction. The behavioral agent flags the new account age of 1 day as a risk factor, despite the transaction amount being within normal bounds, and assigns a risk score of 0.45. The temporal agent assigns a high risk score of 0.89 due to the transaction occurring outside of typical active hours. However, the geographic and device agents assign lower risk scores of 0.325 and 0.025, respectively, due to the lack of geo-distance data and country mismatches, and the use of a known device with low entropy. Given the conflicting signals, an analyst should investigate the transaction to verify the customer's identity and payment information, and review the account's activity history to determine if the transaction is legitimate or not. The analyst should also consider the CVV result and the statistical risk of 0.18 to make a final determination."
+  },
+  "trace": [
+    "\ud83e\udd16 LLM Decision Agent started",
+    "Decision=MID_RISK, Action=REVIEW"
+  ],
+  "nodes": [
+    {
+      "id": "behavioral_agent",
+      "name": "Behavioral Agent",
+      "risk": 0.45,
+      "label": "Medium",
+      "reason": "The transaction has a Z-score of 0, indicating it is not anomalous based on amount. However, the account age is 1 day, which is a risk factor. The CVV result is 'M', which is not a strong fraud indicator in this case. The statistical risk is 0.18, and the enrichment signals suggest a moderate risk due to the new account and unknown payment type."
+    },
+    {
+      "id": "temporal_agent",
+      "name": "Temporal Agent",
+      "risk": 0.89,
+      "label": "High",
+      "reason": "Transaction hour is outside of typical active hours and has a high circular deviation and exponential decay risk"
+    },
+    {
+      "id": "geo_agent",
+      "name": "Geo Agent",
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected, but risk score is moderate"
+    },
+    {
+      "id": "device_agent",
+      "name": "Device Agent",
+      "risk": 0.025,
+      "label": "Low",
+      "reason": "Known device with low entropy and no proxy IP"
+    },
+    {
+      "id": "llm_agent",
+      "name": "LLM Decision Agent",
+      "decision": "MID_RISK",
+      "action": "REVIEW",
+      "reasoning": "The combination of signals from the four specialized agents indicates a moderate risk transaction. The behavioral agent flags the new account age of 1 day as a risk factor, despite the transaction amount being within normal bounds, and assigns a risk score of 0.45. The temporal agent assigns a high risk score of 0.89 due to the transaction occurring outside of typical active hours. However, the geographic and device agents assign lower risk scores of 0.325 and 0.025, respectively, due to the lack of geo-distance data and country mismatches, and the use of a known device with low entropy. Given the conflicting signals, an analyst should investigate the transaction to verify the customer's identity and payment information, and review the account's activity history to determine if the transaction is legitimate or not. The analyst should also consider the CVV result and the statistical risk of 0.18 to make a final determination."
+    }
+  ]
+}

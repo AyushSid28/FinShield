@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "source": "Microsoft R-Server Fraud Detection Dataset (microsoft_transactions.csv)",
+    "evaluated_at": "2026-03-29T16:39:26.814632",
+    "dataset_rows": 71
+  },
+  "transaction": {
+    "transactionId": "1901E38A-A427-4BA3-8C82-C9DB2B8C2735",
+    "customerId": "A1829582519832190",
+    "amount": 59.99,
+    "merchant": "Unknown",
+    "location": "georgia",
+    "deviceId": "unknown",
+    "timestamp": "2013-05-17T07:54:30",
+    "deviceType": "Unknown",
+    "ipCountry": "us",
+    "isProxyIP": "false",
+    "browserType": "Unknown",
+    "paymentType": "Unknown",
+    "cvvResult": "M",
+    "shippingCountry": "",
+    "billingCountry": "US",
+    "accountAge": 1,
+    "recentRejects": 0
+  },
+  "agent_signals": {
+    "behavioral": {
+      "risk": 0.45,
+      "label": "Medium",
+      "reason": "The transaction has a Z-score of 0, indicating it is not anomalous based on amount alone, but enrichment signals such as new account age (1 day) with a risk of 0.81 and unknown payment type contribute to a moderate risk",
+      "z_score": 0.0,
+      "statistical_risk": 0.1824
+    },
+    "temporal": {
+      "risk": 0.56,
+      "label": "Medium",
+      "reason": "The transaction is occurring at an unusual hour, with a circular deviation of 1.0h and a composite risk score of 0.56",
+      "decay_risk": 0.5555
+    },
+    "geo": {
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected, but risk score is moderate"
+    },
+    "device": {
+      "risk": 0.025,
+      "label": "Low",
+      "reason": "Known device with low entropy and no proxy IP"
+    }
+  },
+  "decision": {
+    "verdict": "MID_RISK",
+    "action": "REVIEW",
+    "reasoning": "The combination of signals from the behavioral, temporal, geographic, and device agents indicates a moderate risk transaction. The behavioral agent flags the new account age of 1 day with a risk of 0.81 and unknown payment type, contributing to a moderate risk of 0.45. The temporal agent notes an unusual hour of transaction with a circular deviation of 1.0h, resulting in a risk score of 0.56. Although the geographic agent does not detect any country mismatches, it still assigns a moderate risk score of 0.325. The device agent, however, indicates a low risk of 0.025 due to the known device with low entropy and no proxy IP. Given these factors, an analyst should investigate the transaction further, particularly focusing on the new account age and unusual transaction hour, to determine whether the transaction is legitimate or not."
+  },
+  "trace": [
+    "\ud83e\udd16 LLM Decision Agent started",
+    "Decision=MID_RISK, Action=REVIEW"
+  ],
+  "nodes": [
+    {
+      "id": "behavioral_agent",
+      "name": "Behavioral Agent",
+      "risk": 0.45,
+      "label": "Medium",
+      "reason": "The transaction has a Z-score of 0, indicating it is not anomalous based on amount alone, but enrichment signals such as new account age (1 day) with a risk of 0.81 and unknown payment type contribute to a moderate risk"
+    },
+    {
+      "id": "temporal_agent",
+      "name": "Temporal Agent",
+      "risk": 0.56,
+      "label": "Medium",
+      "reason": "The transaction is occurring at an unusual hour, with a circular deviation of 1.0h and a composite risk score of 0.56"
+    },
+    {
+      "id": "geo_agent",
+      "name": "Geo Agent",
+      "risk": 0.325,
+      "label": "Medium",
+      "reason": "No geo-distance data available and no country mismatches detected, but risk score is moderate"
+    },
+    {
+      "id": "device_agent",
+      "name": "Device Agent",
+      "risk": 0.025,
+      "label": "Low",
+      "reason": "Known device with low entropy and no proxy IP"
+    },
+    {
+      "id": "llm_agent",
+      "name": "LLM Decision Agent",
+      "decision": "MID_RISK",
+      "action": "REVIEW",
+      "reasoning": "The combination of signals from the behavioral, temporal, geographic, and device agents indicates a moderate risk transaction. The behavioral agent flags the new account age of 1 day with a risk of 0.81 and unknown payment type, contributing to a moderate risk of 0.45. The temporal agent notes an unusual hour of transaction with a circular deviation of 1.0h, resulting in a risk score of 0.56. Although the geographic agent does not detect any country mismatches, it still assigns a moderate risk score of 0.325. The device agent, however, indicates a low risk of 0.025 due to the known device with low entropy and no proxy IP. Given these factors, an analyst should investigate the transaction further, particularly focusing on the new account age and unusual transaction hour, to determine whether the transaction is legitimate or not."
+    }
+  ]
+}

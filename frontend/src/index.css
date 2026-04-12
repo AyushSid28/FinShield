@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #ffffff;
+  background: #0b1120;
+  font-family: 'Poppins', sans-serif;
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #0b1120;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  color: #ffffff;
+  background: rgba(112, 95, 255, 0.35);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@layer components {
+  .glass-card {
+    @apply relative overflow-hidden rounded-[32px] border border-stroke bg-glass shadow-card backdrop-blur-2xl;
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply pointer-events-none absolute inset-0 rounded-[32px];
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 55%,
+      rgba(255, 255, 255, 0.01) 100%
+    );
+  }
+
+  .icon-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/[0.15] bg-white/[0.05] px-5 py-3 text-sm font-medium tracking-[0.24em] text-white/90 transition duration-300;
+  }
+
+  .icon-button:hover {
+    @apply scale-[1.02] border-white/25 bg-white/10 shadow-glow;
+  }
+
+  .icon-button:disabled {
+    @apply cursor-not-allowed scale-100 border-white/10 bg-white/[0.05] text-white/[0.35] shadow-none;
+  }
+
+  .eyebrow {
+    @apply text-[11px] uppercase tracking-[0.36em] text-white/[0.55];
+  }
+
+  .stat-label {
+    @apply text-[11px] uppercase tracking-[0.26em] text-white/[0.45];
+  }
+
+  .stat-value {
+    @apply text-sm font-medium text-white/[0.88];
+  }
+}
+
+.app-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%),
+    radial-gradient(circle at center, transparent 44%, rgba(4, 8, 18, 0.38) 100%);
+}
+
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: soft-light;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
+    radial-gradient(circle at 80% 45%, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px),
+    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px);
+  background-size: 160px 160px, 220px 220px, 190px 190px;
+}
+
+.gradient-heading {
+  background-image: linear-gradient(90deg, #2f7bff 0%, #8b5cff 40%, #ff42d0 78%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.grid-backdrop {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 26%;
+  height: 38%;
+  background:
+    linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.02)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: auto, 84px 84px, 84px 84px;
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 18%, rgba(0, 0, 0, 0.9) 100%);
+  opacity: 0.4;
+}

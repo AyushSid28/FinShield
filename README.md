@@ -2,7 +2,7 @@
 
 FinShield ek **multi-agent fraud detection system** hai jo real-time mein transactions ko analyze karke batata hai ki woh fraud hai ya nahi. Isme 4 specialized AI agents hain + 1 LLM Decision Agent jo final verdict deta hai.
 
-**Live Demo:** [finshield.onrender.com](https://finshield.onrender.com)
+**Live Demo:** [finshield.onrender.com](https://finshield-bibp.onrender.com/)
 
 ---
 
